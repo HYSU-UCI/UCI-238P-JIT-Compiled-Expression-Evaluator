@@ -65,7 +65,7 @@ struct jitc *jitc_open(const char *pathname) {
     jitc->handle = dlopen(pathname, RTLD_LAZY);
     if (!jitc->handle) {
         TRACE(dlerror());
-        free(jitc);
+        FREE(jitc);
         return NULL;
     }
 
