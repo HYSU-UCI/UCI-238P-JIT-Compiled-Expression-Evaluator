@@ -42,38 +42,36 @@ struct jitc {
 int jitc_compile(const char *input, const char *output) {
 
     pid_t pid = fork();
+    int status;
 
     if (pid == -1) {
         TRACE("fork failed");
         return -1;
     }
     /* child, compile gcc */ 
-    else if (pid == 0) { 
-        char *argv[] = {"gcc", "-shared", "-o", NULL, "-fpic", "-O3", NULL, NULL};
+    if (pid == 0) { 
+        char *argv[] = {"gcc", "-shared", "-o", NULL, "-fpic", NULL, NULL};
         argv[3] = (char *) output;
-        argv[6] = (char *) input;
+        argv[5] = (char *) input;
 
         execv("/usr/bin/gcc", argv);
         /*
         if success, current process image is replaced, nothing is returned
         if failed
         */
-        perror("execv failed");
+        TRACE("execv failed");
         return -1;        
     }
     /* parent, waitpid() */
-    else {
-        int status;
-
-        if (waitpid(pid, &status, 0) == -1) {
-            TRACE("waitpid failed");
-            return -1;
-        }
-        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-            TRACE("Child did not exit normally or exited with non-zero status"); 
-            return -1;
-        }
+    if (waitpid(pid, &status, 0) == -1) {
+        TRACE("waitpid failed");
+        return -1;
     }
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        TRACE("Child did not exit normally or exited with non-zero status"); 
+        return -1;
+    }
+    
     return 0;
 }
 
@@ -89,6 +87,7 @@ int jitc_compile(const char *input, const char *output) {
 struct jitc *jitc_open(const char *pathname) {
 
     struct jitc *jitc = malloc(sizeof(struct jitc));
+
     if (!jitc) {
         TRACE("malloc failed");
         return NULL;
@@ -97,7 +96,7 @@ struct jitc *jitc_open(const char *pathname) {
     jitc->handle = dlopen(pathname, RTLD_LAZY);
     if (!jitc->handle) {
         TRACE(dlerror());
-        FREE(jitc);
+        free(jitc);
         return NULL;
     }
 
@@ -114,12 +113,14 @@ struct jitc *jitc_open(const char *pathname) {
 
 void jitc_close(struct jitc *jitc) {
 
-    if (!jitc || !jitc->handle) {
-        TRACE("jitc or handle is NULL");
+    if (!jitc) {
+        TRACE("jitc is NULL");
         return;
     }
-
-    dlclose(jitc->handle);
+  
+    if (dlclose(jitc->handle)) {
+        TRACE(dlerror());
+    }
     free(jitc);
 }
 
@@ -133,11 +134,10 @@ void jitc_close(struct jitc *jitc) {
 
 long jitc_lookup(struct jitc *jitc, const char *symbol) {
     
-    /* ISO C90 must declare first */
     void *address;
 
-    if (!jitc || !jitc->handle) {
-        TRACE("jitc or handle is NULL");
+    if (!jitc) {
+        TRACE("jitc is NULL");
         return 0;
     }
 
@@ -146,5 +146,6 @@ long jitc_lookup(struct jitc *jitc, const char *symbol) {
         TRACE(dlerror());
         return 0;
     }
+
     return (long) address;
 }

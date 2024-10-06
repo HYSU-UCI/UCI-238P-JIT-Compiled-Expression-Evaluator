@@ -10,8 +10,10 @@
 #include "jitc.h"
 #include "parser.h"
 #include "system.h"
+#include <math.h>
 
 /* export LD_LIBRARY_PATH=. */
+
 
 double sigmoid(double x) {
 	return 1.0 / (1.0 + exp(-x));
