@@ -47,17 +47,21 @@ int jitc_compile(const char *input, const char *output) {
         TRACE("fork failed");
         return -1;
     }
-    // child, compile gcc
+    /* child, compile gcc */ 
     else if (pid == 0) { 
-        const char *argv[] = {"gcc", "-shared", "-o", output, "-fpic", "-O3", input, NULL};
+        char *argv[] = {"gcc", "-shared", "-o", NULL, "-fpic", "-O3", NULL, NULL};
+        argv[3] = (char *) output;
+        argv[6] = (char *) input;
 
         execv("/usr/bin/gcc", argv);
-        // if success, current process image is replaced, nothing is returned
-        // if failed
+        /*
+        if success, current process image is replaced, nothing is returned
+        if failed
+        */
         perror("execv failed");
         return -1;        
     }
-    // parent, waitpid()
+    /* parent, waitpid() */
     else {
         int status;
 
@@ -128,17 +132,19 @@ void jitc_close(struct jitc *jitc) {
  */
 
 long jitc_lookup(struct jitc *jitc, const char *symbol) {
+    
+    /* ISO C90 must declare first */
+    void *address;
 
     if (!jitc || !jitc->handle) {
         TRACE("jitc or handle is NULL");
         return 0;
     }
 
-    void *address = dlsym(jitc->handle, symbol);
+    address = dlsym(jitc->handle, symbol);
     if (!address) {
         TRACE(dlerror());
         return 0;
     }
-
     return (long) address;
 }
