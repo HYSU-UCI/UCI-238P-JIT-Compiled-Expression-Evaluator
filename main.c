@@ -85,8 +85,12 @@ typedef double (*evaluate_t)(void);
 int
 main(int argc, char *argv[])
 {
+	/*
 	const char *SOFILE = "out.so";
 	const char *CFILE = "out.c";
+	*/
+	const char *SOFILE = "./out.so";
+	const char *CFILE = "./out.c";
 	struct parser *parser;
 	struct jitc *jitc;
 	evaluate_t fnc;
