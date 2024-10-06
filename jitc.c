@@ -26,8 +26,6 @@
  *   dlsym()
  */
 
-/* research the above Needed API and design accordingly */
-
 struct jitc {
     void *handle;
 };
@@ -43,6 +41,36 @@ struct jitc {
 
 int jitc_compile(const char *input, const char *output) {
 
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        TRACE("fork failed");
+        return -1;
+    }
+    // child, compile gcc
+    else if (pid == 0) { 
+        const char *argv[] = {"gcc", "-shared", "-o", output, "-fpic", "-O3", input, NULL};
+
+        execv("/usr/bin/gcc", argv);
+        // if success, current process image is replaced, nothing is returned
+        // if failed
+        perror("execv failed");
+        return -1;        
+    }
+    // parent, waitpid()
+    else {
+        int status;
+
+        if (waitpid(pid, &status, 0) == -1) {
+            TRACE("waitpid failed");
+            return -1;
+        }
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+            TRACE("Child did not exit normally or exited with non-zero status"); 
+            return -1;
+        }
+    }
+    return 0;
 }
 
 /**
