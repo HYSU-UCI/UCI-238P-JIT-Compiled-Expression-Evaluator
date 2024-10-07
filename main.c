@@ -17,7 +17,7 @@
 
 double sigmoid(double x) {
 	
-	printf("sigmoid = %f\n", 1.0 / (1.0 + exp(-x))); 
+	printf("Sigmoid value = %f\n", 1.0 / (1.0 + exp(-x))); 
 	return x;
 }
 
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 		TRACE(0);
 		return -1;
 	}
-	printf("%f\n", fnc());
+	printf("Original value: %f\n", fnc());
 
 	/* done */
 
