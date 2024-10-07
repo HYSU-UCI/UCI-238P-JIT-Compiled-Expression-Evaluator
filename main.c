@@ -16,8 +16,12 @@
 
 
 double sigmoid(double x) {
-	return 1.0 / (1.0 + exp(-x));
+	
+	printf("sigmoid = %f\n", 1.0 / (1.0 + exp(-x))); 
+	return x;
 }
+
+unsigned long sig_address = (unsigned long) sigmoid;
 
 static void
 reflect(const struct parser_dag *dag, FILE *file)
@@ -74,10 +78,12 @@ reflect(const struct parser_dag *dag, FILE *file)
 
 static void
 generate(const struct parser_dag *dag, FILE *file)
-{
+{	
+	fprintf(file, "double (*sigmoid)(double) = (double (*)(double))%lu;\n", sig_address);
+
 	fprintf(file, "double evaluate(void) {\n");
 	reflect(dag, file);
-	fprintf(file, "return t%d;\n}\n", dag->id);
+	fprintf(file, "return sigmoid(t%d);\n}\n", dag->id);
 }
 
 typedef double (*evaluate_t)(void);
