@@ -3,9 +3,6 @@
 ## Overview  
 This program dynamically compiles and executes a mathematical expression. It accepts a mathematical expression (a string containing symbols: +, -, *, /, (, ), value). The program generates a C source code file based on this expression and uses the fork(), execv(), and waitpid() system calls to invoke the GCC compiler, producing a shared object (dynamically loadable module). The compiled module is then loaded into memory using dlopen(), and the result of the expression is evaluated by looking up the relevant symbol with dlsym() and executing the compiled code.
 
-a  
-b  
-
 ## Usage
 ```
 make
